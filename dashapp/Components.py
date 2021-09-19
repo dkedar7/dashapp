@@ -1,17 +1,16 @@
 import dash
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import dcc
+from dash import html
 import dash_bootstrap_components as dbc
 import base64
 
 theme_color_code = "#ffffff" #Indigo
 
-    
 
 def set_layout_skeleton(title_image_path, subtext, github_url, final_text):
 
     image_filename = title_image_path # replace with your own image
-    encoded_image = base64.b64encode(open(image_filename, 'rb').read()).decode("utf-8")
+    encoded_image = base64.b64encode(open(image_filename, 'rb').read()).decode("utf-8") if image_filename else ''
     
     # 1. Navbar placeholder (currently black row)
     navbar = dbc.Row()
@@ -25,6 +24,7 @@ def set_layout_skeleton(title_image_path, subtext, github_url, final_text):
 
 
     ### 3. Body title
+    subtext = '' if not subtext else subtext
     body_paragraph = dbc.Row(
         [
             dbc.Col(
@@ -40,6 +40,7 @@ def set_layout_skeleton(title_image_path, subtext, github_url, final_text):
     )
 
     ### 4. Github logo
+    github_url = '_blank' if not github_url else github_url
     github_logo = dbc.Row(
                 html.A(
                     html.I(className = "fa-2x fab fa-github", style={'color':'#000000'}),
@@ -91,6 +92,7 @@ def set_layout_skeleton(title_image_path, subtext, github_url, final_text):
     )
 
     ### 8. Footer
+    final_text = '' if not final_text else final_text
     footer = dbc.Row(
         dbc.Col(
             html.Div(

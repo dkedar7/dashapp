@@ -1,14 +1,15 @@
+import os
+
 import dash
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import dcc
+from dash import html
 import dash_bootstrap_components as dbc
-from flask_caching import Cache
 import flask
 from flask import request
 
 import base64
-from Components import set_layout_skeleton
-import callbacks
+from .Components import set_layout_skeleton
+from .Callbacks import default_callback
 
 from dash.dependencies import Input, Output
 
@@ -18,7 +19,7 @@ external_stylesheets = [dbc.themes.BOOTSTRAP,
 
 class App(object):
 
-    def __init__(self, title, title_image_path, subtext, github_url, final_text, default_image_path):
+    def __init__(self, title, title_image_path=None, subtext=None, github_url=None, final_text=None, default_image_path=None):
 
         self.title_image_path = title_image_path
         self.subtext = subtext
@@ -33,12 +34,12 @@ class App(object):
                         meta_tags=[{'name': 'viewport',
                                     'content': 'width=device-width, initial-scale=1.0, maximum-scale=1.8, minimum-scale=0.5,'}]
                         )
-        cache = Cache(self.app.server)
+        # cache = Cache(self.app.server)
         self.app.title = title
         
 
     def run(self):
-        self.app.server.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))
+        self.app.server.run(port=8080)#int(os.environ.get('PORT', 8889)))
 
 
     def set_layout(self):
