@@ -8,24 +8,47 @@ import flask
 from flask import request
 
 import base64
-from .Components import set_layout_skeleton
-from .Callbacks import default_callback
+from .Components import set_layout_skeleton, TextInput
+from .Callbacks import process_inputs
+from .utils import get_input_names_from_callback_fn, assign_ids_to_inputs, make_input_groups
 
 from dash.dependencies import Input, Output
 
-external_stylesheets = [dbc.themes.BOOTSTRAP,
+external_stylesheets = [dbc.themes.YETI,
 "https://use.fontawesome.com/releases/v5.9.0/css/all.css"]
 
 
 class App(object):
 
-    def __init__(self, title, title_image_path=None, subtext=None, github_url=None, final_text=None, default_image_path=None):
+    def __init__(self, 
+                callback_fn=None, 
+                inputs=None, 
+                output=None, 
+                title=None, 
+                title_image_path=None, 
+                subheader=None, 
+                github_url=None,
+                linkedin_url=None,
+                twitter_url=None):
 
+        self.callback_fn = callback_fn
+        self.inputs = inputs
+        self.output = output
+
+        if output is None:
+            self.output = TextInput()
+
+        self.output.id = 'output-component'
+
+        self.title = title
         self.title_image_path = title_image_path
-        self.subtext = subtext
+        self.subtext = subheader
         self.github_url = github_url
-        self.final_text = final_text
-        self.default_image_path = default_image_path
+        self.linkedin_url = linkedin_url
+        self.twitter_url = twitter_url
+
+        self.inputs_with_ids = assign_ids_to_inputs(self.inputs, self.callback_fn)
+        self.kwargs = get_input_names_from_callback_fn
 
         server = flask.Flask(__name__)
 
@@ -36,6 +59,12 @@ class App(object):
                         )
         # cache = Cache(self.app.server)
         self.app.title = title
+
+        # Intialize layout
+        self.set_layout()
+
+        # Register callbacks
+        self.register_callback_fn()
         
 
     def run(self):
@@ -43,36 +72,23 @@ class App(object):
 
 
     def set_layout(self):
-        self.app.layout = set_layout_skeleton(self.title_image_path, self.subtext, self.github_url, self.final_text)
+
+        if self.inputs is not None:
+            input_groups = make_input_groups(self.inputs_with_ids)
+
+        self.app.layout = set_layout_skeleton(inputs=input_groups, 
+                                            outputs=self.output,
+                                            title=self.title,
+                                            title_image_path=self.title_image_path, 
+                                            subtext=self.subtext, 
+                                            github_url=self.github_url, 
+                                            linkedin_url=self.linkedin_url, 
+                                            twitter_url=self.twitter_url)
 
 
-    def define_callbacks(self):
+    def register_callback_fn(self):
         @self.app.callback(
-            Output('original-image', 'src'),
-            [Input('upload-image', 'contents')])
-        def update_original_image(contents):
-            if contents:
-                return contents
-            else:
-                image_filename = self.default_image_path # replace with your own image
-                encoded_image = base64.b64encode(open(image_filename, 'rb').read()).decode("utf-8")
-                default_image = 'data:image/png;base64,{}'.format(encoded_image)
-                return default_image
-
-        @self.app.callback(
-            Output('processed-image', 'src'),
-            [Input('original-image', 'src'),
-            Input('passage_dropdown', 'value')]
-        )
-        def update_processed_image(contents, model):
-            if contents:
-                content_type, content_string = contents.split(',')
-                processed_image_string = callbacks.stylize_image(content_string, model).decode("utf-8")
-                processed_image_string = 'data:image/png;base64,{}'.format(processed_image_string)
-                return processed_image_string
-
-            else:
-                image_filename = 'assets/processed_defaultimage.png' # replace with your own image
-                encoded_image = base64.b64encode(open(image_filename, 'rb').read()).decode("utf-8")
-                default_image = 'data:image/png;base64,{}'.format(encoded_image)
-                return default_image
+            Output(component_id=self.output.id, component_property=self.output.attributable_property),
+            [Input(component_id=input_.id, component_property=input_.attributable_property) for input_ in self.inputs_with_ids])
+        def process_input(*args):
+            return self.callback_fn(*args)

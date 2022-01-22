@@ -4,146 +4,237 @@ from dash import html
 import dash_bootstrap_components as dbc
 import base64
 
-theme_color_code = "#ffffff" #Indigo
+theme_color_code = "#ffffff"  # Indigo
 
 
-def set_layout_skeleton(title_image_path, subtext, github_url, final_text):
+class TextInput(dbc.Input):
+    """
+    Extends dbc.Input
+    """
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.attributable_property = 'value'
 
-    image_filename = title_image_path # replace with your own image
-    encoded_image = base64.b64encode(open(image_filename, 'rb').read()).decode("utf-8") if image_filename else ''
-    
-    # 1. Navbar placeholder (currently black row)
-    navbar = dbc.Row()
 
-    # 2. Mosaic icon image
-    icon_image = dbc.Row(
-                        html.Img(src='data:image/png;base64,{}'.format(encoded_image),
-                        style={'width':'250px'}),
-                        justify='center'
+class Upload(dcc.Upload):
+    """
+    Extends dcc.Upload
+    """
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.attributable_property = 'contents'
+
+
+class Slider(dcc.Slider):
+    """
+    Extends dbc.Input
+    """
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.attributable_property = 'value'
+
+
+# class Text
+
+
+def set_layout_skeleton(inputs=None, 
+                        outputs=None, 
+                        title=None, 
+                        title_image_path=None, 
+                        subtext=None, 
+                        github_url=None, 
+                        linkedin_url=None, 
+                        twitter_url=None):
+
+
+    # 1. Navbar placeholder
+    social_media_navigation = []
+    if github_url is not None:
+        social_media_navigation.append(dbc.NavItem(dbc.NavLink(
+            html.I(className="fa-2x fab fa-github", style={'color': '#ffffff'}), href=github_url, target="_blank")))
+
+    if linkedin_url is not None:
+        social_media_navigation.append(dbc.NavItem(dbc.NavLink(html.I(
+            className="fa-2x fab fa-linkedin", style={'color': '#ffffff'}), href=linkedin_url, target="_blank")))
+
+    if twitter_url is not None:
+        social_media_navigation.append(dbc.NavItem(dbc.NavLink(html.I(
+            className="fa-2x fab fa-twitter-square", style={'color': '#ffffff'}), href=twitter_url, target="_blank")))
+
+    # 1. Navbar
+    navbar = dbc.NavbarSimple(
+        children=[dbc.NavItem(dbc.NavLink("About", href="#"))
+                  ] + social_media_navigation,
+        brand=title,
+        color="primary",
+        dark=True,
+        fluid=True,
+        fixed='top'
     )
 
+    # 2. Top container
+    top_container_children = []
 
-    ### 3. Body title
+    if title is not None:
+        top_container_children.append(
+            dbc.Row(
+                html.H1(title, style={'textAlign': 'center'}),
+                style={"padding": "8% 0% 2% 0%"}
+            )
+        )
+
+    if title_image_path is not None:
+        top_container_children.append(
+            dbc.Row(
+                dbc.Row(
+                    html.Img(src=title_image_path,
+                             style={
+                                    'width': '250px'
+                                    }),
+                    justify='center'
+                )
+            )
+        )
+
+    if subtext is not None:
+        top_container_children.append(
+            dbc.Row(    
+                dbc.Row(
+                    html.H4(
+                        html.I(subtext), style={'textAlign': 'center'}),
+                        style={"padding": "2% 0% 2% 0%"}
+                )
+            )
+        )
+
+    # 3. Body title
     subtext = '' if not subtext else subtext
     body_paragraph = dbc.Row(
         [
             dbc.Col(
-                    [
-                        html.Br(),
-                        html.H5(subtext,
-                            style={'text-align':'center', "color":"darkgray", "font-family": "Verdana; Gill Sans"})
-                    ],
-                    style ={"padding":"1% 1% 3% 0%", "background-color":theme_color_code}
-                )
+                [
+                    html.Br(),
+                    html.H5(subtext,
+                            style={'text-align': 'center', "color": "darkgray", "font-family": "Verdana; Gill Sans"})
+                ],
+                style={"padding": "1% 1% 3% 0%",
+                       "background-color": theme_color_code}
+            )
         ],
-        style = {'text-align':'center', "padding":"1% 1% 1% 0%", "background-color":theme_color_code}
-    )
-
-    ### 4. Github logo
-    github_url = '_blank' if not github_url else github_url
-    github_logo = dbc.Row(
-                html.A(
-                    html.I(className = "fa-2x fab fa-github", style={'color':'#000000'}),
-                    href = github_url, target="_blank",
-                    className="mr-3"
-            ),
-            justify='center'
-    )
-
-    ### 5. Upload button
-    upload_button = dbc.Col(
-        [
-            dcc.Upload(id='upload-image',
-                    children = dbc.Col(
-                        [
-                            'Click to upload an image'
-                        ]
-                    ),
-                    style={
-                        'lineHeight': '60px',
-                            'borderWidth': '1px',
-                            'borderStyle': 'dashed',
-                            'borderRadius': '5px',
-                            'textAlign': 'center',
-                            'margin': '10px'
-                    }
-                ),
-            ]
+        style={'text-align': 'center', "padding": "1% 1% 1% 0%",
+               "background-color": theme_color_code}
     )
 
 
-    ### 7. Display original and processed images
-    images = dbc.Row(
-        [
-            dbc.Col(dbc.CardImg(id='original-image'), style = {"padding" : "2% 1% 1% 2%", 
-                                                                'lineHeight': '60px',
-                                                                'borderWidth': '1px',
-                                                                'borderStyle': 'dashed',
-                                                                'borderRadius': '5px',
-                                                                'margin': '10px'}),
-            dbc.Col(html.P(id='processed-text'), style = {"padding" : "2% 1% 1% 2%", 
-                                                            'lineHeight': '60px',
-                                                            'borderWidth': '1px',
-                                                            'borderStyle': 'dashed',
-                                                            'borderRadius': '5px',
-                                                            'margin': '10px'}
-                        )
-        ]
-    )
-
-    ### 8. Footer
-    final_text = '' if not final_text else final_text
-    footer = dbc.Row(
+    # 5. Upload button
+    upload_button = dbc.Row(
         dbc.Col(
-            html.Div(
             [
-                final_text,
-                html.A("GitHub repository", 
-                        href = github_url,
-                        target = "_blank"),
-                ' to learn more.'
+                dcc.Upload(id='upload-image',
+                           children=dbc.Col(
+                               [
+                                   'Click to upload an image'
+                               ]
+                           ),
+                           style={
+                               'lineHeight': '60px',
+                               'borderWidth': '1px',
+                               'borderStyle': 'dashed',
+                               'borderRadius': '5px',
+                               'textAlign': 'center'
+                           }
+                           ),
             ],
+            width=6,
+            xs=12,
+            sm=12,
+            md=12,
+            lg=10,
+            xl=6,
+            xxl=6
         ),
-        width={"size": 10}
-    ), 
-        justify='center',
-        align='center',
-        style={'margin-bottom': "10%"}
+        justify="center"
     )
 
-    ### Bring it together
-    top = dbc.Container(
+    # 7. Display original and processed images
+    input_output_components = dbc.Row(
         [
-            dcc.Store(id='memory-output', storage_type='memory'),
-            navbar,
-            icon_image,
-            body_paragraph,
-            github_logo
+            dbc.Col(inputs,
+                    style={"padding": "2% 1% 1% 2%",
+                           'lineHeight': '60px',
+                           'borderWidth': '1px',
+                           'borderRadius': '5px',
+                           "background-color": "#F2F2F2"},
+                    width=5,
+                    xs=12,
+                    sm=12,
+                    md=5,
+                    lg=5,
+                    xl=5,
+                    xxl=5),
+            dbc.Col(outputs,
+                    id="output-group",
+                    style={"padding": "2% 1% 1% 2%",
+                           'lineHeight': '60px',
+                           'borderWidth': '1px',
+                           'borderRadius': '5px',
+                           "background-color": "#F2F2F2"},
+                    width=5,
+                    xs=12,
+                    sm=12,
+                    md=5,
+                    lg=5,
+                    xl=5,
+                    xxl=5)
         ],
-        fluid = False
+        justify='evenly',
+        style={"padding": "2% 1% 10% 2%"}
+    )
+
+    # 8. Footer
+    footer = dbc.NavbarSimple(
+        brand='Made with Dash',
+        color="primary",
+        dark=True,
+        fluid=True,
+        fixed='bottom'
+    )
+
+    # Bring it together
+    navbar_container = dbc.Container(
+        [
+            navbar
+        ],
+        fluid=True
+    )
+
+    top = dbc.Container(
+            top_container_children
     )
 
     middle = dbc.Container(
         [
-            upload_button,
-            images
+            # upload_button,
+            input_output_components
         ],
-        fluid = False
+        fluid=True
     )
 
     bottom = dbc.Container(
-        [   
+        [
             footer
         ],
-        fluid = False
+        fluid=True
     )
 
     layout = dbc.Container(
         [
-            top, 
+            navbar_container,
+            top,
             middle,
             bottom
-        ]
+        ],
+        fluid=True
     )
 
     return layout
