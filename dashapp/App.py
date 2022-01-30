@@ -1,9 +1,9 @@
 import dash
-import dash_bootstrap_components as dbc
 import flask
 
 from .Components import DefaultLayout, TextInput
 from .utils import (
+    theme_mapper,
     assign_ids_to_inputs,
     make_input_groups,
     make_output_groups,
@@ -24,7 +24,8 @@ class App(object):
                  subheader=None,
                  github_url=None,
                  linkedin_url=None,
-                 twitter_url=None):
+                 twitter_url=None,
+                 theme='YETI'):
 
         self.callback_fn = callback_fn
         self.inputs = inputs
@@ -52,7 +53,7 @@ class App(object):
 
         # Define Flask server
         server = flask.Flask(__name__)
-        external_stylesheets = [dbc.themes.YETI,
+        external_stylesheets = [theme_mapper(theme),
                                 "https://use.fontawesome.com/releases/v5.9.0/css/all.css"]
         self.app = dash.Dash(__name__, external_stylesheets=external_stylesheets,
                              server=server,

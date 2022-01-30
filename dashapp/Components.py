@@ -217,8 +217,16 @@ class UploadInput(dcc.Upload):
     Extends dcc.Upload
     """
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, label='Click to upload', **kwargs):
+        super().__init__(children=dbc.Col(
+            [label]),
+            style={
+            'lineHeight': '60px',
+            'borderWidth': '1px',
+            'borderStyle': 'dashed',
+            'borderRadius': '5px',
+            'textAlign': 'center'
+        }, **kwargs)
         self.attributable_property = 'contents'
 
 
@@ -269,7 +277,6 @@ class GraphOutput(dcc.Graph):
         super().__init__(**kwargs)
         self.attributable_property = 'figure'
         self.placeholder = go.Figure().\
-            update_layout(template="plotly_white").\
             update_yaxes(visible=False, showticklabels=False).\
             update_xaxes(visible=False, showticklabels=False)
 
